@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8
+    container_name: cms-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cmsdb
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./assignment-3-biscuit3/sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./assignment-3-biscuit3
+      dockerfile: Dockerfile
+    container_name: cms-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/cmsdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: rootpassword
+
+  frontend:
+    build:
+      context: ./conference-FE
+      dockerfile: Dockerfile
+    container_name: cms-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
