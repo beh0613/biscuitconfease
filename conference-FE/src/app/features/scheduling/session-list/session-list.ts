@@ -9,7 +9,7 @@ import { SchedulingService, Session } from '../../../services/scheduling';
   imports: [CommonModule, FormsModule, DatePipe], 
   template: `
     <div class="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded bg-white">
-      
+    
       <div class="rounded-t mb-0 px-4 py-3 border-0">
         <div class="flex flex-wrap items-center">
           <div class="relative w-full px-4 max-w-full flex-grow flex-1">
