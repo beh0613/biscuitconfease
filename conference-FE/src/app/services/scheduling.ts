@@ -42,7 +42,7 @@ export class SchedulingService {
   // ==========================================
   
   getRooms(): Observable<Room[]> {
-    // ✅ STEP 2: Use `this.baseUrl` instead of just '/api/...'
+    
     return this.http.get<Room[]>(`${this.baseUrl}/rooms`);
   }
 

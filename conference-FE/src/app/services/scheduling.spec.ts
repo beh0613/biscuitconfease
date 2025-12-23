@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Scheduling } from './scheduling';
+import { SchedulingService } from './scheduling';
 
-describe('Scheduling', () => {
-  let service: Scheduling;
+describe('SchedulingService', () => {
+  let service: SchedulingService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(Scheduling);
+    service = TestBed.inject(SchedulingService);
   });
 
   it('should be created', () => {

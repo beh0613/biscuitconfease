@@ -1,4 +1,6 @@
-import { Component, inject } from '@angular/core';
+
+
+import { Component, inject, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common'; // Added DatePipe for formatting
 import { FormsModule } from '@angular/forms';
 import { SchedulingService, Session } from '../../../services/scheduling';
@@ -68,15 +70,20 @@ import { SchedulingService, Session } from '../../../services/scheduling';
     </div>
   `
 })
-export class SessionListComponent {
+export class SessionListComponent implements OnInit {
   private schedulingService = inject(SchedulingService);
+  private cdr = inject(ChangeDetectorRef);
   
   sessions: Session[] = [];
   showForm = false;
   newSession: Session = { title: '', chair_id: 0 };
 
   constructor() {
-    this.loadSessions(); // This ensures data loads AUTOMATICALLY on page load
+   
+  }
+
+  ngOnInit() {
+    this.loadSessions();
   }
 
   loadSessions() {
