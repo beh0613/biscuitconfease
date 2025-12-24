@@ -3,28 +3,30 @@ package com.webcrafters.confease_backend.controller;
 import com.webcrafters.confease_backend.model.Paper;
 import com.webcrafters.confease_backend.repository.PaperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import java.net.MalformedURLException;
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/papers")
+
 public class PaperController {
 
     @Autowired
     private PaperRepository paperRepository;
 
-    private final Path uploadPath = Paths.get("uploads"); // Docker volume mapped folder
+    private final Path uploadPath = Paths.get("uploads");
 
     // Get all papers
     @GetMapping
@@ -35,86 +37,103 @@ public class PaperController {
     // Get paper by ID
     @GetMapping("/{id}")
     public ResponseEntity<Paper> getPaperById(@PathVariable Long id) {
-        Optional<Paper> paper = paperRepository.findById(id);
-        return paper.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return paperRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Download PDF
-    @GetMapping("/{id}/download")
-    public ResponseEntity<Resource> downloadPaper(@PathVariable Long id) {
-        Optional<Paper> paperOpt = paperRepository.findById(id);
-        if (paperOpt.isEmpty()) return ResponseEntity.notFound().build();
-
-        Paper paper = paperOpt.get();
-        Path filePath = uploadPath.resolve(paper.getSubmission_file());
-        if (!Files.exists(filePath)) return ResponseEntity.notFound().build();
-
+    // Removed the 'consumes' part to be more flexible
+    @PostMapping
+    public ResponseEntity<Paper> createPaper(
+            @RequestParam("title") String title,
+            @RequestParam("abstractText") String abstractText,
+            @RequestParam("track_id") Long trackId,
+            @RequestParam("submitted_by") Long submittedBy,
+            @RequestParam("file") MultipartFile file) {
         try {
-            Resource resource = new UrlResource(filePath.toUri());
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + paper.getSubmission_file() + "\"")
-                    .body(resource);
-        } catch (MalformedURLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+            Paper paper = new Paper();
+            paper.setTitle(title);
+            paper.setAbstractText(abstractText);
+            paper.setTrack_id(trackId);
+            paper.setSubmitted_by(submittedBy);
+            paper.setStatus("submitted");
+            paper.setVersion(1);
+            paper.setFile_type("PDF");
 
-    // Create a new paper with file upload
-    @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<Paper> createPaper(@RequestPart("paper") Paper paper,
-                                             @RequestPart("file") MultipartFile file) {
-        try {
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-            Path filePath = uploadPath.resolve(file.getOriginalFilename());
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
+            saveFile(file);
             paper.setSubmission_file(file.getOriginalFilename());
-            Paper savedPaper = paperRepository.save(paper);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedPaper);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(paperRepository.save(paper));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // Update existing paper (with optional file upload)
+    // Update existing paper
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<Paper> updatePaper(@PathVariable Long id,
-                                             @RequestPart("paper") Paper paperDetails,
-                                             @RequestPart(name = "file", required = false) MultipartFile file) {
-        Optional<Paper> optionalPaper = paperRepository.findById(id);
-        if (optionalPaper.isEmpty()) return ResponseEntity.notFound().build();
+    public ResponseEntity<Paper> updatePaper(
+            @PathVariable Long id,
+            @RequestParam("title") String title,
+            @RequestParam("abstractText") String abstractText,
+            @RequestParam("track_id") Long trackId,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
 
-        Paper paper = optionalPaper.get();
-        // Update fields
-        paper.setTrack_id(paperDetails.getTrack_id());
-        paper.setTitle(paperDetails.getTitle());
-        paper.setAbstractText(paperDetails.getAbstractText());
-        paper.setFile_type(paperDetails.getFile_type());
-        paper.setVersion(paperDetails.getVersion());
-        paper.setStatus(paperDetails.getStatus());
-        paper.setSubmitted_by(paperDetails.getSubmitted_by());
-
-        // If file uploaded, save it
-        if (file != null) {
+        return paperRepository.findById(id).map(paper -> {
             try {
-                Path filePath = uploadPath.resolve(file.getOriginalFilename());
-                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                paper.setSubmission_file(file.getOriginalFilename());
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
-        }
+                paper.setTitle(title);
+                paper.setAbstractText(abstractText);
+                paper.setTrack_id(trackId);
 
-        Paper updatedPaper = paperRepository.save(paper);
-        return ResponseEntity.ok(updatedPaper);
+                if (file != null && !file.isEmpty()) {
+                    saveFile(file);
+                    paper.setSubmission_file(file.getOriginalFilename());
+                }
+
+                return ResponseEntity.ok(paperRepository.save(paper));
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Paper>build();
+            }
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     // Delete paper
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePaper(@PathVariable Long id) {
         if (!paperRepository.existsById(id)) return ResponseEntity.notFound().build();
-
         paperRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Helper method for file storage
+    private void saveFile(MultipartFile file) throws IOException {
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        Path filePath = uploadPath.resolve(file.getOriginalFilename());
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Resource> downloadFile(@PathVariable Long id) {
+        return paperRepository.findById(id).map(paper -> {
+            try {
+                // Absolute path inside the Docker container
+                Path filePath = uploadPath.resolve(paper.getSubmission_file()).normalize();
+                Resource resource = new UrlResource(filePath.toUri());
+
+                if (resource.exists() && resource.isReadable()) {
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_PDF)
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + paper.getSubmission_file() + "\"")
+                            .body(resource);
+                } else {
+                    // Explicitly cast to ResponseEntity<Resource> to satisfy the compiler
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).<Resource>build();
+                }
+            } catch (MalformedURLException e) {
+                // Explicitly cast to ResponseEntity<Resource>
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Resource>build();
+            }
+        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Resource>build());
     }
 }

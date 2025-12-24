@@ -26,18 +26,16 @@ export class SubmitPaperComponent implements OnInit {
   paper: any = {
     title: '',
     abstractText: '',
-    track_id: 0,
-    status: 'submitted',
-    submitted_by: 0,
-    submission_file: '',
-    file_type: 'PDF',
-    version: 1
+    track_id: null, // This will be bound to the select dropdown
+    submitted_by: 0  // Hardcoded to 1 as requested
   };
 
   ngOnInit() {
-    this.userName = localStorage.getItem('email') || 'User';
-    const userId = localStorage.getItem('user_id');
-    if (userId) this.paper.submitted_by = Number(userId);
+     this.userName = localStorage.getItem('email') || 'User';
+        const userId = localStorage.getItem('user_id');
+        if (userId) {
+          this.paper.submitted_by = Number(userId);
+        }
 
     this.loadKeywords();
 
@@ -52,14 +50,27 @@ export class SubmitPaperComponent implements OnInit {
 
   loadKeywords() {
     this.http.get<any[]>('http://localhost:8081/api/keywords').subscribe({
-      next: (data) => this.keywords = data,
+      next: (data) => {
+        console.log('Keywords loaded:', data); // Check the console to see the correct property names
+        this.keywords = data;
+
+        // Do not auto-set if in edit mode
+        if (this.keywords.length > 0 && !this.isEditMode) {
+          this.paper.track_id = this.keywords[0].keyword_id;
+        }
+      },
       error: (err) => console.error('Keyword load failed', err)
     });
   }
 
   loadPaperForEdit(id: number) {
     this.http.get<any>(`http://localhost:8081/api/papers/${id}`).subscribe({
-      next: (data) => this.paper = { ...data },
+      next: (data) => {
+        this.paper.title = data.title;
+        this.paper.abstractText = data.abstractText;
+        this.paper.track_id = data.track_id;
+        this.paper.submitted_by = data.submitted_by || 1;
+      },
       error: () => alert('Error loading paper details.')
     });
   }
@@ -68,29 +79,55 @@ export class SubmitPaperComponent implements OnInit {
     const file: File = event.target.files[0];
     if (file && file.type === 'application/pdf') {
       this.selectedFile = file;
-      this.paper.submission_file = file.name;
-    } else alert('Please select a PDF file.');
-  }
-
-  onSubmit() {
-    const formData = new FormData();
-    if (this.selectedFile) formData.append('file', this.selectedFile);
-    formData.append('paper', new Blob([JSON.stringify(this.paper)], { type: 'application/json' }));
-
-    if (this.isEditMode) {
-      this.http.put(`http://localhost:8081/api/papers/${this.paperId}`, formData).subscribe({
-        next: () => { alert('Paper updated successfully!'); this.router.navigate(['/my-paper']); },
-        error: () => alert('Update failed.')
-      });
     } else {
-      this.http.post('http://localhost:8081/api/papers', formData).subscribe({
-        next: () => { alert('Paper submitted successfully!'); this.router.navigate(['/my-paper']); },
-        error: () => alert('Submission failed.')
-      });
+      alert('Please select a valid PDF file.');
+      event.target.value = '';
     }
   }
 
+  onSubmit() {
+    if (!this.selectedFile && !this.isEditMode) {
+      alert('Please select a PDF file to upload.');
+      return;
+    }
+
+    // Double check that track_id is selected
+    if (!this.paper.track_id) {
+      alert('Please select a track (keyword).');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('title', this.paper.title);
+    formData.append('abstractText', this.paper.abstractText);
+    formData.append('track_id', this.paper.track_id.toString());
+    formData.append('submitted_by', this.paper.submitted_by.toString());
+
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
+    }
+
+    const url = this.isEditMode
+      ? `http://localhost:8081/api/papers/${this.paperId}`
+      : `http://localhost:8081/api/papers`;
+
+    const request = this.isEditMode
+      ? this.http.put(url, formData)
+      : this.http.post(url, formData);
+
+    request.subscribe({
+      next: () => {
+        alert(this.isEditMode ? 'Paper updated successfully!' : 'Paper submitted successfully!');
+        this.router.navigate(['/my-paper']);
+      },
+      error: (err) => {
+        console.error('Submission failed:', err);
+        alert(`Error ${err.status}: Check if User ID 1 and Track ID ${this.paper.track_id} exist in DB.`);
+      }
+    });
+  }
+
   navigateToDashboard() {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/my-paper']);
   }
 }

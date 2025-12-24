@@ -1,68 +1,108 @@
-<div class="submissions-wrapper">
-  <div class="papers-list-card card-shadow">
-    <table class="papers-table">
-      <thead>
-      <tr>
-        <th width="10%">ID</th>
-        <th width="40%">Research Title</th>
-        <th width="15%">Current Status</th>
-        <th width="35%">Actions</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let paper of myPapers">
-        <td class="id-cell">#{{paper.paper_id}}</td>
-        <td class="title-cell"><span class="paper-title">{{paper.title}}</span></td>
-        <td>
-            <span class="status-badge" [ngClass]="paper.status?.toLowerCase()">
-              {{paper.status}}
-            </span>
-        </td>
-        <td class="action-cell">
-          <button class="icon-btn view" (click)="viewDetail(paper)" title="View Details">
-            <mat-icon>visibility</mat-icon>
-          </button>
-          <button class="icon-btn edit" (click)="editPaper(paper.paper_id)" title="Edit">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button class="icon-btn download" (click)="downloadPaper(paper.paper_id, paper.submission_file)" title="Download">
-            <mat-icon>download</mat-icon>
-          </button>
-          <button class="icon-btn delete" (click)="deletePaper(paper.paper_id)" title="Delete">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="modal-backdrop" *ngIf="selectedPaper">
-    <div class="detail-modal card-shadow">
-      <header class="modal-header">
-        <h2>Manuscript Details</h2>
-        <button (click)="closeDetail()"><mat-icon>close</mat-icon></button>
-      </header>
-      <div class="modal-body">
-        <div class="detail-item">
-          <label>Full Title</label>
-          <p>{{selectedPaper.title}}</p>
-        </div>
-        <div class="detail-item">
-          <label>Abstract</label>
-          <p class="abstract-text">{{selectedPaper.abstract || 'No abstract provided.'}}</p>
-        </div>
-        <div class="detail-grid">
-          <div>
-            <label>Track ID</label>
-            <p>{{selectedPaper.track_id}}</p>
-          </div>
-          <div>
-            <label>Submission Date</label>
-            <p>{{selectedPaper.created_at | date:'medium'}}</p>
+<main class="registry-canvas">
+  <div class="app-container">
+    <header class="registry-header">
+      <div class="brand-info">
+        <h1>My Submissions</h1>
+        <p>Manage and track the lifecycle of your research paper</p>
+      </div>
+      <div class="quick-stats">
+        <div class="stat-card blue">
+          <div class="stat-icon-bg"><mat-icon>folder_shared</mat-icon></div>
+          <div class="stat-data">
+            <span class="val">{{myPapers.length}}</span>
+            <span class="lbl">Total Papers</span>
           </div>
         </div>
       </div>
+    </header>
+
+    <div class="data-grid-container">
+      <table class="modern-table">
+        <thead>
+        <tr>
+          <th class="col-main">PAPER DETAILS</th>
+          <th>TRACK / KEYWORD</th>
+          <th class="col-status">STATUS</th>
+          <th class="col-actions text-right">ACTIONS</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let paper of myPapers" class="hover-row">
+          <td>
+            <div class="paper-primary-info" (click)="viewDetail(paper)">
+              <span class="m-title">#{{paper.paper_id}} - {{paper.title}}</span>
+              <span class="m-snippet">
+                  Submitted at: {{ paper.submitted_at | date:'shortTime' }} |
+                  {{ (paper.abstractText || '') | slice:0:80 }}...
+                </span>
+            </div>
+          </td>
+          <td>
+            <span class="track-tag">{{ getKeywordName(paper.track_id) }}</span>
+          </td>
+          <td>
+              <span class="status-badge" [ngClass]="paper.status?.toLowerCase()">
+                {{paper.status || 'Pending'}}
+              </span>
+          </td>
+          <td class="text-right">
+            <div class="action-buttons" style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button class="btn-icon view" (click)="viewDetail(paper)"><mat-icon>visibility</mat-icon></button>
+              <button class="btn-icon edit" (click)="editPaper(paper.paper_id)"><mat-icon>edit</mat-icon></button>
+              <button class="btn-icon delete" (click)="deletePaper(paper.paper_id)"><mat-icon>delete</mat-icon></button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-</div>
+
+  <div class="modal-backdrop" *ngIf="selectedPaper" (click)="closeDetail()">
+    <div class="review-panel" (click)="$event.stopPropagation()">
+      <aside class="panel-sidebar">
+        <div class="ref-tag">#MS-{{selectedPaper.paper_id}}</div>
+        <div class="status-box">
+          <label>Current Status</label>
+          <div class="status-badge" [ngClass]="selectedPaper.status?.toLowerCase()">{{selectedPaper.status}}</div>
+        </div>
+      </aside>
+
+      <div class="panel-content">
+        <header class="panel-header">
+          <div class="header-titles">
+            <span class="context-tag">Paper Ownership Review</span>
+            <h2 style="margin: 0; color: #0f172a;">Submission Details</h2>
+          </div>
+          <button class="btn-close-modal" (click)="closeDetail()"><mat-icon>close</mat-icon></button>
+        </header>
+
+        <div class="panel-scroll-body">
+          <div class="content-group">
+            <label class="group-label">Title</label>
+            <h1 class="hero-title">{{selectedPaper.title}}</h1>
+          </div>
+          <div class="content-group">
+            <label class="group-label">Executive Abstract</label>
+            <div class="premium-abstract-box">{{ selectedPaper?.abstractText }}</div>
+          </div>
+          <div class="content-group">
+            <label class="group-label">Timeline & Metadata</label>
+            <div style="display: flex; gap: 20px;">
+              <p><strong>Submitted:</strong> {{selectedPaper.submitted_at | date:'medium'}}</p>
+
+
+            </div>
+          </div>
+        </div>
+
+        <footer class="panel-footer">
+          <button class="btn-ghost" (click)="closeDetail()">Dismiss</button>
+          <button class="btn-action-primary" (click)="viewFile(selectedPaper.paper_id)">
+            <mat-icon>remove_red_eye</mat-icon><span>Read Manuscript</span>
+          </button>
+        </footer>
+      </div>
+    </div>
+  </div>
+</main>

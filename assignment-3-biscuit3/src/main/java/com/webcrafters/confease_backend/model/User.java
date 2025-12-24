@@ -19,7 +19,8 @@ public class User {
     private String category;
     private String orcid;
     private String profile_picture;
-    private Boolean is_email_verified;
+    @Column(name = "is_email_verified", nullable = false)
+    private Boolean is_email_verified = false; // Initialize with false
     private Timestamp created_at;
     private Timestamp updated_at;
 

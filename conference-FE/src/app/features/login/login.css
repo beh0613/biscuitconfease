@@ -1,0 +1,80 @@
+.split-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* Prevent global scroll */
+
+  .visual-side {
+    flex: 1.2;
+    background: #0f172a;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #f8fafc;
+    position: relative;
+
+    @media (max-width: 992px) { display: none; }
+
+    .branding {
+      position: absolute;
+      top: 40px;
+      left: 60px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    .visual-text {
+      h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; }
+      p { font-size: 1.25rem; color: #94a3b8; max-width: 480px; }
+    }
+  }
+
+  .form-side {
+    flex: 1;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+
+    .form-content {
+      width: 100%;
+      max-width: 380px;
+
+      form {
+        display: flex;
+        flex-direction: column; /* Stacks fields vertically */
+        gap: 15px; /* Vertical spacing between fields */
+
+        mat-form-field { width: 100%; }
+
+        .login-btn {
+          width: 100%;
+          height: 50px;
+          margin-top: 10px;
+          font-weight: 600;
+          background-color: #0f172a;
+          color: white;
+        }
+      }
+
+      footer {
+        margin-top: 24px;
+        text-align: center;
+        color: #64748b;
+
+        a {
+          color: #2563eb;
+          font-weight: 700;
+          text-decoration: none;
+          cursor: pointer;
+          &:hover { text-decoration: underline; }
+        }
+      }
+    }
+  }
+}

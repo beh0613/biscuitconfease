@@ -17,12 +17,16 @@ export class MyPaperPage implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef); // Essential for direct display
 
-  userName: string = 'User';
+// 1. ADD THIS VARIABLE
+  private apiBase = 'http://localhost:8081/api';
+
+userName: string = 'User';
   currentUserId: number | null = null;
   myPapers: any[] = [];
     selectedPaper: any = null;
-
+keywords: any[] = [];
   ngOnInit() {
+    this.loadKeywords();
     const email = localStorage.getItem('email');
     this.userName = email || 'User';
 
@@ -45,6 +49,26 @@ export class MyPaperPage implements OnInit {
     });
   }
 
+// NEW: Fetch keywords from the backend
+  loadKeywords() {
+    this.http.get<any[]>(`${this.apiBase}/keywords`).subscribe({
+      next: (data) => {
+        this.keywords = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Keyword load failed', err)
+    });
+  }
+
+getKeywordName(trackId: number): string {
+  if (!this.keywords || this.keywords.length === 0) return `Track ${trackId}`;
+
+  const found = this.keywords.find((kw: any) => kw.keyword_id === trackId);
+
+  // Try both 'name' and 'keyword_name' to be safe
+  return found ? (found.name || found.keyword_name) : `Track ${trackId}`;
+}
+
   loadMyPapers() {
     this.http.get<any[]>('http://localhost:8081/api/papers').subscribe({
       next: (data) => {
@@ -58,31 +82,24 @@ export class MyPaperPage implements OnInit {
     });
   }
 
-downloadPaper(paperId: number, fileName: string) {
-  if (!fileName) {
-    alert('No file associated with this paper.');
-    return;
-  }
+ // VIEW FILE: Opens PDF in a new browser tab
+ viewFile(paperId: number) {
+     // 2. Corrected the URL path to match your Backend
+     const url = `${this.apiBase}/papers/${paperId}/download`;
 
-  // Use your backend endpoint that serves the actual file
-  const fileUrl = `http://localhost:8081/api/papers/download/${paperId}`;
-
-  this.http.get(fileUrl, { responseType: 'blob' }).subscribe({
-    next: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      // Use the original filename from the database
-      link.download = fileName;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    },
-    error: (err) => {
-      console.error('Download failed', err);
-      alert('Could not download file. Please check if the file exists on the server.');
-    }
-  });
-}
+     this.http.get(url, { responseType: 'blob' }).subscribe({
+       next: (blob) => {
+         const file = new Blob([blob], { type: 'application/pdf' });
+         const fileURL = URL.createObjectURL(file);
+         window.open(fileURL, '_blank');
+         setTimeout(() => URL.revokeObjectURL(fileURL), 10000);
+       },
+       error: (err) => {
+         console.error('File View Error:', err);
+         alert('Could not open manuscript. Verify the file exists on the server.');
+       }
+     });
+   }
 
 // DELETE: Remove paper from DB
   deletePaper(paperId: number) {
@@ -109,8 +126,9 @@ downloadPaper(paperId: number, fileName: string) {
   }
 
   closeDetail() {
-    this.selectedPaper = null;
-  }
+      this.selectedPaper = null;
+    }
+
 }
 
 

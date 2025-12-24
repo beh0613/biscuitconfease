@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -13,7 +13,6 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class AllPapersPage implements OnInit {
   private http = inject(HttpClient);
-  private cdr = inject(ChangeDetectorRef);
 
   allPapers: any[] = [];
   keywordsList: any[] = [];
@@ -22,7 +21,6 @@ export class AllPapersPage implements OnInit {
   selectedStatus: string = '';
   selectedPaper: any = null;
 
-  // Base API matching your Docker setup
   apiBase = 'http://localhost:8081/api';
 
   ngOnInit() {
@@ -34,19 +32,24 @@ export class AllPapersPage implements OnInit {
     this.http.get<any[]>(`${this.apiBase}/keywords`).subscribe(data => this.keywordsList = data);
   }
 
-  // Statistics Getters
+  // Statistics Calculation
   get totalPapersCount(): number { return this.allPapers.length; }
   get papersUnderReviewCount(): number {
     return this.allPapers.filter(p => p.status?.toLowerCase() === 'under_review').length;
   }
 
+  // Search and Filter Logic
   get filteredPapers() {
     return this.allPapers.filter(paper => {
       const searchSource = (paper.title || '') + (paper.abstractText || '');
       const matchesSearch = searchSource.toLowerCase().includes(this.searchTerm.toLowerCase());
-      const paperTrackId = paper.keyword_id || paper.track_id;
+
+      const paperTrackId = paper.track_id || paper.keyword_id;
       const matchesTrack = this.selectedTrack == 0 || paperTrackId == this.selectedTrack;
-      const matchesStatus = !this.selectedStatus || paper.status?.toLowerCase() === this.selectedStatus.toLowerCase();
+
+      const matchesStatus = !this.selectedStatus ||
+                            paper.status?.toLowerCase() === this.selectedStatus.toLowerCase();
+
       return matchesSearch && matchesTrack && matchesStatus;
     });
   }
@@ -54,18 +57,23 @@ export class AllPapersPage implements OnInit {
   openDetails(paper: any) { this.selectedPaper = paper; }
   closeDetails() { this.selectedPaper = null; }
 
-  downloadFile(paperId: number) {
-    this.http.get(`${this.apiBase}/papers/${paperId}/download`, { responseType: 'blob' })
-      .subscribe({
-        next: (blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Manuscript_${paperId}.pdf`;
-          a.click();
-          window.URL.revokeObjectURL(url);
-        },
-        error: () => alert('File not found in backend storage.')
-      });
-  }
+  // VIEW FILE: Opens PDF in a new browser tab
+ viewFile(paperId: number) {
+   // Ensure the slash / is present between 'papers' and the ID variable
+   const url = `${this.apiBase}/papers/${paperId}/download`;
+
+   this.http.get(url, { responseType: 'blob' }).subscribe({
+     next: (blob) => {
+       const file = new Blob([blob], { type: 'application/pdf' });
+       const fileURL = URL.createObjectURL(file);
+       window.open(fileURL, '_blank');
+       // Clean up the URL to prevent memory leaks
+       setTimeout(() => URL.revokeObjectURL(fileURL), 10000);
+     },
+     error: (err) => {
+       console.error('File View Error:', err);
+       alert('Could not open manuscript. Check if the backend is running on 8081.');
+     }
+   });
+ }
 }

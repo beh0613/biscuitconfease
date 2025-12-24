@@ -1,0 +1,88 @@
+<div class="split-container">
+  <div class="visual-side">
+    <div class="branding">
+      <mat-icon>school</mat-icon>
+      <span>ConfEase</span>
+    </div>
+    <div class="visual-text">
+      <h1>Join the Research Community.</h1>
+      <p>Create your account to start submitting papers and collaborating with global researchers.</p>
+    </div>
+  </div>
+
+  <div class="form-side">
+    <div class="form-content">
+      <header>
+        <h2>Create Account</h2>
+        <p>Join the BiscuitConfease research community.</p>
+      </header>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="first_name">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="last_name">
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email Address</mat-label>
+          <input matInput type="email" formControlName="email">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password_hash">
+          <mat-hint>Min. 8 characters</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Register As</mat-label>
+          <mat-select formControlName="role_id">
+            <mat-option [value]="1">Author (Submit Papers)</mat-option>
+            <mat-option [value]="3">Admin (Management)</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Affiliation</mat-label>
+            <input matInput formControlName="affiliation">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select formControlName="category">
+              <mat-option value="student">Student</mat-option>
+              <mat-option value="academic">Academic</mat-option>
+              <mat-option value="staff">Staff</mat-option>
+              <mat-option value="other">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>ORCID (Optional)</mat-label>
+            <input matInput formControlName="orcid">
+          </mat-form-field>
+        </div>
+
+        <button mat-flat-button class="submit-btn" [disabled]="registerForm.invalid">
+          CREATE ACCOUNT
+        </button>
+      </form>
+
+      <footer>
+        Already have an account? <a routerLink="/login">Sign In</a>
+      </footer>
+    </div>
+  </div>
+</div>

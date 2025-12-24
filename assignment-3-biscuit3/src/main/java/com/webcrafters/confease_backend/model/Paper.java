@@ -1,5 +1,6 @@
 package com.webcrafters.confease_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.sql.Timestamp;
 
@@ -9,21 +10,43 @@ public class Paper {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "paper_id") // Matches SQL: paper_id
     private Long paper_id;
+
     private Long track_id;
+
+    @Column(nullable = false)
     private String title;
-    @Column(columnDefinition = "TEXT")
+
+    @Column(name = "abstract", columnDefinition = "TEXT") // Matches SQL: abstract
+    @JsonProperty("abstractText")
     private String abstractText;
+
     private String submission_file;
     private String file_type;
     private Integer version;
     private Double plagiarism_score;
-    private String status;
+
+    @Enumerated(EnumType.STRING) // Matches SQL: ENUM type
+    private Status status = Status.submitted;
+
     private Long submitted_by;
+
+    @Column(insertable = false, updatable = false)
     private Timestamp submitted_at;
+
+    @Column(insertable = false, updatable = false)
     private Timestamp last_updated;
 
-    // Getters and Setters
+    // Inner enum to match your SQL ENUM definition
+    public enum Status {
+        submitted, under_review, accepted, rejected
+    }
+
+    public Paper() {}
+
+    // --- Getters and Setters ---
+
     public Long getPaper_id() { return paper_id; }
     public void setPaper_id(Long paper_id) { this.paper_id = paper_id; }
 
@@ -48,8 +71,8 @@ public class Paper {
     public Double getPlagiarism_score() { return plagiarism_score; }
     public void setPlagiarism_score(Double plagiarism_score) { this.plagiarism_score = plagiarism_score; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public String getStatus() { return status.name(); }
+    public void setStatus(String status) { this.status = Status.valueOf(status); }
 
     public Long getSubmitted_by() { return submitted_by; }
     public void setSubmitted_by(Long submitted_by) { this.submitted_by = submitted_by; }
