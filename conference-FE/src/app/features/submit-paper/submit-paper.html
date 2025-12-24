@@ -1,0 +1,76 @@
+<div class="submit-wrapper">
+  <header class="page-header">
+    <div class="header-main">
+      <div class="status-indicator" [ngClass]="isEditMode ? 'edit-mode' : 'create-mode'">
+        {{ isEditMode ? 'Revision Stage' : 'Initial Submission' }}
+      </div>
+      <h1>{{ isEditMode ? 'Modify Manuscript' : 'Submit Research Entry' }}</h1>
+    </div>
+    <p class="header-subtitle">Ensure your manuscript adheres to the journal's formatting guidelines. Changes to the abstract will be reflected immediately.</p>
+  </header>
+
+  <form (ngSubmit)="onSubmit()" #paperForm="ngForm" class="professional-form">
+    <div class="form-grid">
+
+      <div class="form-main-content">
+        <section class="form-section card-shadow">
+          <div class="section-header">
+            <mat-icon>article</mat-icon>
+            <h3>Manuscript Content</h3>
+          </div>
+
+          <div class="input-group">
+            <label>Full Research Title</label>
+            <input type="text" name="title" [(ngModel)]="paper.title" required
+                   placeholder="Enter the full title of your research paper">
+          </div>
+
+          <div class="input-group">
+            <label>Abstract / Executive Summary</label>
+            <textarea name="abstractText" [(ngModel)]="paper.abstractText" rows="10" required
+                      placeholder="Provide a concise summary of your research..."></textarea>
+          </div>
+        </section>
+      </div>
+
+      <div class="form-side-content">
+        <section class="form-section card-shadow">
+          <div class="section-header">
+            <mat-icon>label</mat-icon>
+            <h3>Taxonomy</h3>
+          </div>
+          <div class="input-group">
+            <label>Primary Research Keyword</label>
+            <select name="keyword_id" [(ngModel)]="paper.keyword_id" required>
+              <option [ngValue]="null" disabled>-- Choose Keyword --</option>
+              <option *ngFor="let kw of keywords" [value]="kw.keyword_id || kw.id">
+                {{ kw.name || kw.keywordName || kw.keyword }}
+              </option>
+            </select>
+          </div>
+        </section>
+
+        <section class="form-section card-shadow">
+          <div class="section-header">
+            <mat-icon>attachment</mat-icon>
+            <h3>Manuscript File</h3>
+          </div>
+          <div class="upload-zone" [class.file-ready]="paper.submission_file !== 'Manuscript.pdf'" (click)="fileInput.click()">
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept=".pdf" hidden>
+            <mat-icon>{{ paper.submission_file !== 'Manuscript.pdf' ? 'task_alt' : 'picture_as_pdf' }}</mat-icon>
+            <p>{{ paper.submission_file }}</p>
+            <span class="upload-link">Click to upload PDF</span>
+          </div>
+        </section>
+
+        <div class="action-stack">
+          <button type="submit" class="btn-primary" [disabled]="!paperForm.valid">
+            <mat-icon>cloud_done</mat-icon>
+            {{ isEditMode ? 'Update Manuscript' : 'Submit to Journal' }}
+          </button>
+          <button type="button" class="btn-ghost" (click)="navigateToDashboard()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

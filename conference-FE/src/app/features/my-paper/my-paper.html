@@ -1,0 +1,68 @@
+<div class="submissions-wrapper">
+  <div class="papers-list-card card-shadow">
+    <table class="papers-table">
+      <thead>
+      <tr>
+        <th width="10%">ID</th>
+        <th width="40%">Research Title</th>
+        <th width="15%">Current Status</th>
+        <th width="35%">Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let paper of myPapers">
+        <td class="id-cell">#{{paper.paper_id}}</td>
+        <td class="title-cell"><span class="paper-title">{{paper.title}}</span></td>
+        <td>
+            <span class="status-badge" [ngClass]="paper.status?.toLowerCase()">
+              {{paper.status}}
+            </span>
+        </td>
+        <td class="action-cell">
+          <button class="icon-btn view" (click)="viewDetail(paper)" title="View Details">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button class="icon-btn edit" (click)="editPaper(paper.paper_id)" title="Edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="icon-btn download" (click)="downloadPaper(paper.paper_id, paper.submission_file)" title="Download">
+            <mat-icon>download</mat-icon>
+          </button>
+          <button class="icon-btn delete" (click)="deletePaper(paper.paper_id)" title="Delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="selectedPaper">
+    <div class="detail-modal card-shadow">
+      <header class="modal-header">
+        <h2>Manuscript Details</h2>
+        <button (click)="closeDetail()"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="modal-body">
+        <div class="detail-item">
+          <label>Full Title</label>
+          <p>{{selectedPaper.title}}</p>
+        </div>
+        <div class="detail-item">
+          <label>Abstract</label>
+          <p class="abstract-text">{{selectedPaper.abstract || 'No abstract provided.'}}</p>
+        </div>
+        <div class="detail-grid">
+          <div>
+            <label>Track ID</label>
+            <p>{{selectedPaper.track_id}}</p>
+          </div>
+          <div>
+            <label>Submission Date</label>
+            <p>{{selectedPaper.created_at | date:'medium'}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

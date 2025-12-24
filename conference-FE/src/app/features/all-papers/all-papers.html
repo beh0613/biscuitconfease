@@ -1,0 +1,144 @@
+<main class="registry-canvas">
+  <div class="app-container">
+    <header class="registry-header">
+      <div class="brand-info">
+        <h1>Manuscript Registry</h1>
+        <p>Advanced Management Portal for Academic Research</p>
+      </div>
+      <div class="quick-stats">
+        <div class="stat-card blue">
+          <div class="stat-icon-bg">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="stat-data">
+            <span class="val">{{totalPapersCount}}</span>
+            <span class="lbl">Submissions</span>
+          </div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-icon-bg">
+            <mat-icon>pending_actions</mat-icon>
+          </div>
+          <div class="stat-data">
+            <span class="val">{{papersUnderReviewCount}}</span>
+            <span class="lbl">In Review</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="toolbar card-shadow">
+      <div class="search-engine">
+        <mat-icon>search</mat-icon>
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Filter manuscripts by title or keywords...">
+      </div>
+
+      <div class="toolbar-actions">
+        <div class="filter-dropdown">
+          <label>RESEARCH FIELD</label>
+          <select [(ngModel)]="selectedTrack">
+            <option [value]="0">All Fields</option>
+            <option *ngFor="let kw of keywordsList" [value]="kw.keyword_id || kw.id">{{kw.keyword}}</option>
+          </select>
+        </div>
+        <div class="filter-dropdown">
+          <label>STATUS</label>
+          <select [(ngModel)]="selectedStatus">
+            <option value="">Any Status</option>
+            <option value="submitted">Submitted</option>
+            <option value="under_review">Under Review</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="data-grid-container card-shadow">
+      <table class="modern-table">
+        <thead>
+        <tr>
+          <th class="col-main">MANUSCRIPT DETAILS</th>
+          <th class="col-status">LIFECYCLE</th>
+          <th class="col-actions text-right">MANAGEMENT</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let paper of filteredPapers" class="hover-row">
+          <td>
+            <div class="paper-primary-info" (click)="openDetails(paper)">
+              <span class="m-title">{{paper.title}}</span>
+              <span class="m-snippet">{{ (paper.abstractText || 'No abstract provided') | slice:0:110 }}...</span>
+            </div>
+          </td>
+          <td>
+              <span class="status-badge" [ngClass]="paper.status?.toLowerCase()">
+                {{paper.status}}
+              </span>
+          </td>
+          <td class="text-right">
+            <div class="action-buttons">
+              <button class="btn-icon view" (click)="openDetails(paper)" title="View Details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button class="btn-icon download" (click)="downloadFile(paper.paper_id || paper.id)" title="Download">
+                <mat-icon>file_download</mat-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="selectedPaper" (click)="closeDetails()">
+    <div class="review-panel" (click)="$event.stopPropagation()">
+      <aside class="panel-sidebar">
+        <div class="ref-tag">#ID-{{selectedPaper.paper_id || selectedPaper.id}}</div>
+        <nav class="side-nav">
+          <button class="nav-btn active">
+            <mat-icon>info</mat-icon>
+            <span>Overview</span>
+          </button>
+          <button class="nav-btn">
+            <mat-icon>history</mat-icon>
+            <span>Versions</span>
+          </button>
+        </nav>
+      </aside>
+
+      <div class="panel-content">
+        <header class="panel-header">
+          <div class="header-titles">
+            <span class="context-tag">Manuscript Detailed Review</span>
+            <h2>Research Assessment</h2>
+          </div>
+          <button class="btn-close-modal" (click)="closeDetails()" aria-label="Close">
+            <mat-icon>close</mat-icon>
+          </button>
+        </header>
+
+        <div class="panel-scroll-body">
+          <div class="content-group">
+            <label class="group-label">Full Research Title</label>
+            <h1 class="hero-title">{{selectedPaper.title}}</h1>
+          </div>
+
+          <div class="content-group">
+            <label class="group-label">Executive Abstract</label>
+            <div class="premium-abstract-box">
+              {{selectedPaper.abstractText || 'No executive abstract available for this manuscript.'}}
+            </div>
+          </div>
+        </div>
+
+        <footer class="panel-footer">
+          <button class="btn-ghost" (click)="closeDetails()">Dismiss</button>
+          <button class="btn-action-primary" (click)="downloadFile(selectedPaper.paper_id || selectedPaper.id)">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <span>Export Manuscript</span>
+          </button>
+        </footer>
+      </div>
+    </div>
+  </div>
+</main>

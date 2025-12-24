@@ -1,0 +1,193 @@
+.submissions-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3rem;
+    padding: 0 1rem;
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -1.5px;
+      margin: 0;
+    }
+
+    p {
+      color: #64748b;
+      font-size: 1.1rem;
+      margin-top: 8px;
+    }
+
+    .stats-mini-card {
+      background: white;
+      padding: 1rem 2rem;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      text-align: right;
+
+      .count-label { display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+      .count-value { font-size: 1.8rem; font-weight: 800; color: #3b82f6; }
+    }
+  }
+}
+
+.papers-list-card {
+  background: white;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.papers-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 1.5rem 2rem;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  td {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+
+  .id-cell { font-family: 'JetBrains Mono', monospace; color: #94a3b8; font-weight: 600; }
+  .paper-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; }
+
+  tr:hover { background-color: #fcfdfe; }
+}
+
+/* Professional Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+  &.submitted { background: #f0fdf4; color: #166534; }
+  &.pending { background: #fffbeb; color: #92400e; }
+}
+
+/* Action Button: Refined */
+.download-action-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Empty State Styling */
+.empty-state {
+  padding: 6rem 0 !important;
+  text-align: center;
+
+  .empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    mat-icon { font-size: 4rem; width: 4rem; height: 4rem; color: #e2e8f0; margin-bottom: 1rem; }
+    p { font-size: 1.1rem; color: #94a3b8; font-weight: 500; }
+    .submit-shortcut {
+      margin-top: 1.5rem;
+      padding: 12px 24px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  }
+}
+
+.action-cell {
+  display: flex;
+  gap: 8px;
+
+  .icon-btn {
+    border: none;
+    background: #f1f5f9;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    transition: 0.2s;
+
+    mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+    &.view:hover { color: #3b82f6; background: #eff6ff; }
+    &.edit:hover { color: #f59e0b; background: #fffbeb; }
+    &.download:hover { color: #10b981; background: #ecfdf5; }
+    &.delete:hover { color: #ef4444; background: #fef2f2; }
+  }
+}
+
+/* Modal Styling */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+
+.detail-modal {
+  background: white;
+  width: 600px;
+  max-width: 90%;
+  border-radius: 16px;
+  padding: 2rem;
+
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem;
+    h2 { margin: 0; font-size: 1.25rem; color: #1e293b; }
+    button { border: none; background: transparent; cursor: pointer; color: #64748b; }
+  }
+
+  .detail-item {
+    margin-bottom: 1.25rem;
+    label { font-weight: 700; font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
+    p { margin: 4px 0 0; color: #334155; }
+    .abstract-text { line-height: 1.6; font-size: 0.9rem; }
+  }
+
+  .detail-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;
+  }
+}
