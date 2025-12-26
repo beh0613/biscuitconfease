@@ -50,3 +50,26 @@ services:
       - "4200:80"
 
 
+  pipeline {
+  agent any
+  stages {
+  stage('Build and Test') {
+  steps {
+  script {
+  // Start services defined in your docker-compose.yml in detached mode
+  sh 'docker-compose up -d'
+
+  // Run tests inside your specific service container
+  // Replace 'backend' with the actual service name from your docker-compose.yml
+  sh 'docker-compose exec -T backend ./mvnw test'
+  }
+  }
+  }
+}
+  post {
+  always {
+  // Clean up containers after tests finish (pass or fail)
+  sh 'docker-compose down'
+  }
+}
+}
