@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: mysql:8
-    container_name: cms-db
+    #container_name: cms-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
@@ -22,7 +22,7 @@ services:
     build:
       context: ./assignment-3-biscuit3
       dockerfile: Dockerfile
-    container_name: cms-backend
+    #container_name: cms-backend
     restart: always
     depends_on:
       db:
@@ -42,7 +42,7 @@ services:
     build:
       context: ./conference-FE
       dockerfile: Dockerfile
-    container_name: cms-frontend
+    #container_name: cms-frontend
     restart: always
     depends_on:
       - backend

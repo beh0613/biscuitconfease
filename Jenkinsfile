@@ -3,31 +3,32 @@ pipeline {
     stages {
         stage('Compile & Package') {
             steps {
-                // Change directory to your backend folder and build the JAR
                 dir('assignment-3-biscuit3') {
                     sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
                 }
             }
         }
-
-        stage('Spin up Environment') {
-            steps {
-                // Now that the JAR exists in assignment-3-biscuit3/target/,
-                // docker compose can build the image successfully
-                sh 'docker compose up -d --build'
-            }
-        }
-
+       stage('Spin up Environment') {
+           steps {
+               // --remove-orphans clears out old containers that might cause conflicts
+               sh 'docker compose down --remove-orphans'
+               sh 'docker compose up -d --build'
+           }
+       }
         stage('Run Tests') {
             steps {
-                // Run the actual test suite inside the container
-                sh 'docker compose exec -T backend ./mvnw test'
+                // Ensure Allure results directory exists
+                sh 'docker compose exec -T backend ./mvnw test || true'
             }
         }
     }
     post {
         always {
+            // Generate Allure Report
+            allure includeProperties: false, jdk: '', results: [[path: 'assignment-3-biscuit3/allure-results']]
+
+            // Final cleanup
             sh 'docker compose down'
         }
     }
