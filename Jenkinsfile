@@ -1,22 +1,33 @@
 pipeline {
     agent any
     stages {
-        stage('Spin up Environment') {
+        stage('Compile & Package') {
             steps {
-                // This command looks for the docker-compose.yml file in the same folder
-                sh 'docker compose up -d'
+                // Change directory to your backend folder and build the JAR
+                dir('assignment-3-biscuit3') {
+                    sh 'chmod +x mvnw'
+                    sh './mvnw clean package -DskipTests'
+                }
             }
         }
+
+        stage('Spin up Environment') {
+            steps {
+                // Now that the JAR exists in assignment-3-biscuit3/target/,
+                // docker compose can build the image successfully
+                sh 'docker compose up -d --build'
+            }
+        }
+
         stage('Run Tests') {
             steps {
-                // Run your maven tests inside the existing backend container
+                // Run the actual test suite inside the container
                 sh 'docker compose exec -T backend ./mvnw test'
             }
         }
     }
     post {
         always {
-            // Clean up containers after finishing
             sh 'docker compose down'
         }
     }
