@@ -12,7 +12,6 @@
 	<artifactId>confease-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>ConfEaseBackend</name>
-	<description>A Spring Boot and MySQL-Powered Conference Management API</description>
 
 	<properties>
 		<java.version>20</java.version>
@@ -40,29 +39,15 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
-			<version>${aspectj.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>io.qameta.allure</groupId>
 			<artifactId>allure-junit5</artifactId>
 			<version>${allure.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>${aspectj.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -72,11 +57,32 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<layers>
-						<enabled>true</enabled>
-					</layers>
-				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.6.0</version>
+				<executions>
+					<execution>
+						<id>copy-aspectjweaver</id>
+						<phase>process-test-resources</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.aspectj</groupId>
+									<artifactId>aspectjweaver</artifactId>
+									<version>${aspectj.version}</version>
+									<outputDirectory>${project.build.directory}</outputDirectory>
+									<destFileName>aspectjweaver-${aspectj.version}.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
@@ -85,8 +91,11 @@
 				<version>3.1.2</version>
 				<configuration>
 					<argLine>
-						-javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+						-javaagent:"${project.build.directory}/aspectjweaver-${aspectj.version}.jar"
 					</argLine>
+					<systemPropertyVariables>
+						<allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 
@@ -94,9 +103,6 @@
 				<groupId>io.qameta.allure</groupId>
 				<artifactId>allure-maven</artifactId>
 				<version>2.12.0</version>
-				<configuration>
-					<resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>

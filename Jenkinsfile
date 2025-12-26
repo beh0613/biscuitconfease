@@ -1,34 +1,42 @@
 pipeline {
     agent any
+
     stages {
         stage('Compile & Package') {
             steps {
                 dir('assignment-3-biscuit3') {
                     sh 'chmod +x mvnw'
+                    // Generate the JAR and copy the AspectJ weaver
                     sh './mvnw clean package -DskipTests'
                 }
             }
         }
-       stage('Spin up Environment') {
-           steps {
-               // --remove-orphans clears out old containers that might cause conflicts
-               sh 'docker compose down --remove-orphans'
-               sh 'docker compose up -d --build'
-           }
-       }
+
+        stage('Spin up Environment') {
+            steps {
+                // Remove orphans to prevent name conflicts
+                sh 'docker compose down --remove-orphans'
+                sh 'docker compose up -d --build'
+            }
+        }
+
         stage('Run Tests') {
             steps {
-                // Ensure Allure results directory exists
+                // Run tests inside the backend service
+                // '|| true' ensures the pipeline continues to report generation even if tests fail
                 sh 'docker compose exec -T backend ./mvnw test || true'
             }
         }
     }
+
     post {
         always {
-            // Generate Allure Report
-            allure includeProperties: false, jdk: '', results: [[path: 'assignment-3-biscuit3/allure-results']]
+            // Collect Allure results from the backend target folder
+            allure includeProperties: false,
+                   jdk: '',
+                   results: [[path: 'assignment-3-biscuit3/target/allure-results']]
 
-            // Final cleanup
+            // Clean up the Docker environment
             sh 'docker compose down'
         }
     }
