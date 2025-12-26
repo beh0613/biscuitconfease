@@ -22,9 +22,8 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                // Run tests inside the backend service
-                // '|| true' ensures the pipeline continues to report generation even if tests fail
-                sh 'docker compose exec -T backend ./mvnw test || true'
+                // Run mvnw from the /app directory inside the container
+                sh 'docker compose exec -T backend ./mvnw test -Dallure.results.directory=target/allure-results || true'
             }
         }
     }
