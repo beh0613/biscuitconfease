@@ -20,13 +20,24 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
-            steps {
-                // Run mvnw from the /app directory inside the container
-                sh 'docker compose exec -T backend ./mvnw test -Dallure.results.directory=target/allure-results || true'
-            }
-        }
-    }
+     stage('Run Tests') {
+         steps {
+             script {
+                 // Give MySQL time to initialize its schema
+                 echo "Waiting for MySQL..."
+                 sh 'sleep 20'
+
+                 // Explicitly pass the MySQL URL to the test runner
+                 sh '''
+                     docker compose exec -T backend ./mvnw test \
+                     -Dspring.datasource.url=jdbc:mysql://db:3306/cmsdb \
+                     -Dspring.datasource.username=root \
+                     -Dspring.datasource.password=rootpassword \
+                     -Dallure.results.directory=target/allure-results
+                 '''
+             }
+         }
+     }
 
     post {
         always {
